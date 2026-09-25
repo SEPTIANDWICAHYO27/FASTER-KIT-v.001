@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cek ikon P3K PRO</title>
+<link rel="icon" href="favicon.ico">
+<style>
+  :root { color-scheme: light dark; --ok: #12916A; --bad: #D62839; --line: #E4E7EE; --muted: #667085; }
+  body { font: 15px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 24px 16px; background: #F4F5F9; color: #121A33; }
+  @media (prefers-color-scheme: dark) { body { background: #0B1022; color: #E7EAF4; } :root { --line: #253058; --muted: #98A2BD; } .card { background: #131A33 !important; } }
+  main { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p { color: var(--muted); margin: 0 0 16px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-top: 1px solid var(--line); }
+  .row:first-child { border-top: 0; }
+  .row img { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; border: 1px solid var(--line); flex: none; }
+  .row .f { flex: 1; min-width: 0; word-break: break-all; }
+  .row small { display: block; color: var(--muted); }
+  .st { font-weight: 700; white-space: nowrap; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); }
+  .sum { padding: 14px; font-weight: 700; border-radius: 14px; margin-bottom: 16px; }
+  .sum.ok { background: #E3F5EE; } .sum.bad { background: #FDECEE; }
+  a { color: #22367A; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Cek ikon P3K PRO</h1>
+  <p>Halaman ini memeriksa apakah semua file ikon ikut terupload ke GitHub Pages.</p>
+  <div id="sum" class="sum">Memeriksa…</div>
+  <div class="card" id="list"></div>
+  <p><a href="./">Buka aplikasi</a></p>
+</main>
+<script>
+(async function () {
+  const files = ['index.html', 'manifest.json', 'config.js', 'app.js', 'styles.css', 'sw.js',
+    'favicon.ico', 'favicon-48.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'logo.webp'];
+  const list = document.getElementById('list');
+  let bad = 0;
+  for (const f of files) {
+    const url = new URL(f, location.href).href;
+    let ok = false, info = '';
+    try {
+      const r = await fetch(url + '?cek=' + Date.now(), { cache: 'no-store' });
+      ok = r.ok; info = r.ok ? (r.headers.get('content-type') || '') : 'HTTP ' + r.status + ' (file tidak ada)';
+    } catch (e) { info = 'Gagal dimuat'; }
+    if (!ok) bad++;
+    const isImg = /\.(png|ico|webp)$/.test(f);
+    list.insertAdjacentHTML('beforeend', '<div class="row">' + (isImg && ok ? '<img alt="" src="' + f + '">' : '<span style="width:40px"></span>') +
+      '<span class="f">' + f + '<small>' + url + (info ? ', ' + info : '') + '</small></span>' +
+      '<span class="st ' + (ok ? 'ok' : 'bad') + '">' + (ok ? 'Ada' : 'HILANG') + '</span></div>');
+  }
+  // cek isi manifest
+  try {
+    const m = await (await fetch('manifest.json', { cache: 'no-store' })).json();
+    for (const ic of m.icons || []) {
+      const r = await fetch(new URL(ic.src, location.href), { cache: 'no-store' });
+      if (!r.ok) { bad++; list.insertAdjacentHTML('beforeend', '<div class="row"><span style="width:40px"></span><span class="f">manifest → ' + ic.src + '</span><span class="st bad">HILANG</span></div>'); }
+    }
+  } catch (e) { bad++; }
+  const sum = document.getElementById('sum');
+  sum.className = 'sum ' + (bad ? 'bad' : 'ok');
+  sum.textContent = bad ? bad + ' file hilang. Upload file bertanda HILANG ke repo (sejajar dengan index.html), tunggu 1–2 menit, lalu muat ulang halaman ini.'
+                        : 'Semua file lengkap. Ikon siap: install ulang aplikasi di HP bila ikon lama masih tampil.';
+})();
+</script>
+</body>
+</html>
